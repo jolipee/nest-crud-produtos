@@ -1,26 +1,47 @@
-import { Injectable } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateProdutoDto } from './dto/create-produto.dto';
 import { UpdateProdutoDto } from './dto/update-produto.dto';
+import { Produto } from './entities/produto.entity';
 
 @Injectable()
 export class ProdutosService {
-  create(createProdutoDto: CreateProdutoDto) {
-    return 'This action adds a new produto';
+  constructor(
+    @InjectRepository(Produto)
+    private produtoRepository: Repository<Produto>,
+  ) {}
+
+  async create(createProdutoDto: CreateProdutoDto): Promise<Produto> {
+    const produto = this.produtoRepository.create({
+      ...createProdutoDto
+    });
+    return await this.produtoRepository.save(produto);
   }
 
-  findAll() {
-    return `This action returns all produtos`;
+  async findAll(): Promise<Produto[]> {
+    return await this.produtoRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} produto`;
+  async findOne(id: number): Promise<Produto> {
+    const produto = await this.produtoRepository.findOne({ where: { id } });
+    if (!produto) {
+      throw new NotFoundException(`Produto com id: ${id} não encontrado`);
+    }
+    return produto;
   }
 
-  update(id: number, updateProdutoDto: UpdateProdutoDto) {
-    return `This action updates a #${id} produto`;
+  async update(id: number, updateProdutoDto: UpdateProdutoDto): Promise<Produto> {
+    await this.findOne(id); // verifica se existe
+    await this.produtoRepository.update(id, updateProdutoDto);
+    return this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} produto`;
+  async remove(id: number): Promise<void> {
+    const result = await this.produtoRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Produto com id: ${id} não encontrado`);
+    }
   }
 }
