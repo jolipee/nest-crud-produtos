@@ -5,19 +5,32 @@ import { Repository } from 'typeorm';
 import { CreateProdutoDto } from './dto/create-produto.dto';
 import { UpdateProdutoDto } from './dto/update-produto.dto';
 import { Produto } from './entities/produto.entity';
+import { Categoria } from 'src/categorias/entities/categoria.entity';
 
 @Injectable()
 export class ProdutosService {
   constructor(
     @InjectRepository(Produto)
     private produtoRepository: Repository<Produto>,
+    @InjectRepository(Categoria)
+    private categoriaRepository: Repository<Categoria>,
   ) {}
 
   async create(createProdutoDto: CreateProdutoDto): Promise<Produto> {
-    const produto = this.produtoRepository.create({
-      ...createProdutoDto
+    const categoria = await this.categoriaRepository.findOne({
+      where: { id: createProdutoDto.categoriaId },
     });
-    return await this.produtoRepository.save(produto);
+
+    if (!categoria) {
+      throw new NotFoundException(`Categoria com id ${createProdutoDto.categoriaId} não encontrada`);
+    }
+
+    const produto = this.produtoRepository.create({
+    ...createProdutoDto,
+    categoria,
+    });
+
+    return this.produtoRepository.save(produto);
   }
 
   async findAll(): Promise<Produto[]> {
@@ -33,7 +46,7 @@ export class ProdutosService {
   }
 
   async update(id: number, updateProdutoDto: UpdateProdutoDto): Promise<Produto> {
-    await this.findOne(id); // verifica se existe
+    await this.findOne(id);
     await this.produtoRepository.update(id, updateProdutoDto);
     return this.findOne(id);
   }
