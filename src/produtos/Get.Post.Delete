@@ -1,0 +1,44 @@
+import { Controller, Get, Post, Patch, Delete, Param, Body } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { CreateProdutoDto } from './dto/create-produto.dto';
+import { UpdateProdutoDto } from './dto/update-produto.dto';
+
+@ApiTags('Produtos')
+@Controller('produtos')
+export class ProdutosController {
+
+  @Post()
+  @ApiOperation({ summary: 'Criar um novo produto' })
+  @ApiResponse({ status: 201, description: 'Produto criado com sucesso.' })
+  create(@Body() dto: CreateProdutoDto) {
+    return { message: 'Produto criado', data: dto };
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Listar todos os produtos' })
+  @ApiResponse({ status: 200, description: 'Lista de produtos retornada com sucesso.' })
+  findAll() {
+    return [{ id: 1, nome: 'Produto Exemplo', preco: 100 }];
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Buscar um produto por ID' })
+  @ApiResponse({ status: 200, description: 'Produto encontrado com sucesso.' })
+  findOne(@Param('id') id: string) {
+    return { id, nome: 'Produto Exemplo', preco: 100 };
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Atualizar um produto por ID' })
+  @ApiResponse({ status: 200, description: 'Produto atualizado com sucesso.' })
+  update(@Param('id') id: string, @Body() dto: UpdateProdutoDto) {
+    return { message: `Produto ${id} atualizado`, data: dto };
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Deletar um produto por ID' })
+  @ApiResponse({ status: 200, description: 'Produto removido com sucesso.' })
+  remove(@Param('id') id: string) {
+    return { message: `Produto ${id} removido` };
+  }
+}
